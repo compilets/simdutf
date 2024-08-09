@@ -1,0 +1,4 @@
+Automatically fetches and pushes single header version of simdutf:
+https://github.com/simdutf/simdutf/tree/master?tab=readme-ov-file#single-header-version
+
+This repo is for those who want to include simdutf as submodules.

@@ -1,0 +1,35 @@
+name: update
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 21 * * 1'
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Download latest release.
+          npx unzip-url https://github.com/simdutf/simdutf/releases/latest/download/singleheader.zip .
+          rm amalgamation_demo.cpp
+          # Do nothing if there is no change.
+          if ! git diff --exit-code --quiet
+          then
+            # Use github credentials for pushing.
+            gh auth setup-git
+            git config --global user.name 'Cheng'
+            git config --global user.email 'cheng@zcbenz.com'
+            # Commit change and push
+            git commit -a -m 'Update to latest simdutf'
+            git push
+          fi
