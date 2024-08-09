@@ -1,0 +1,42 @@
+name: test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: >-
+      ${{
+        (matrix.os == 'mac' && matrix.arch == 'arm64') &&
+          'macos-14' ||
+          (fromJson('{"linux":"ubuntu-22.04","mac":"macos-13","win":"windows-2022"}')[matrix.os])
+      }}
+    continue-on-error: false
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [linux, mac, win]
+        arch: [x64]
+        include:
+          - os: mac
+            arch: arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ matrix.os }}-${{ matrix.arch }}
+
+      - name: Build
+        shell: bash  # required by ccache
+        run: |
+          npx unzip-url https://github.com/yue/build-gn/releases/download/v0.11.1/gn_v0.11.1_${{ matrix.os }}_${{ matrix.arch }}.zip gn
+          python gn/tools/clang/scripts/update.py
+          ./gn/gn gen out/Debug --args='is_debug=true cc_wrapper="ccache" clang_use_chrome_plugins=false'
+          ./gn/ninja -C out/Debug amalgamation_demo
+
+      - name: Test
+        run: ./out/Debug/amalgamation_demo

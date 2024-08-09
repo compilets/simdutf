@@ -1,0 +1,27 @@
+config("simdutf_config") {
+  include_dirs = [ "." ]
+}
+
+source_set("simdutf") {
+  public_configs = [ ":simdutf_config" ]
+  sources = [
+    "simdutf.cpp",
+    "simdutf.h",
+  ]
+  if (is_clang || !is_win) {
+    cflags_cc = [
+      "-Wno-#pragma-messages",
+      "-Wno-ambiguous-reversed-operator",
+      "-Wno-unreachable-code-break",
+      "-Wno-unused-const-variable",
+      "-Wno-unused-function",
+      "-Wno-c++98-compat-extra-semi",
+    ]
+  }
+}
+
+executable("amalgamation_demo") {
+  testonly = true
+  sources = [ "amalgamation_demo.cpp" ]
+  deps = [ ":simdutf" ]
+}

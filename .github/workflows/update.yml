@@ -30,6 +30,11 @@ jobs:
             git config --global user.name 'Cheng'
             git config --global user.email 'cheng@zcbenz.com'
             # Commit change and push
+            git checkout -b update-latest-simdutf
             git commit -a -m 'Update to latest simdutf'
-            git push
+            git push -- force
+            # Create PR.
+            gh pr create --base main --head update-latest-simdutf \
+                         --title 'Update to latest simdutf changes' \
+                         --body '__:warning: Close and reopen PR to run CI :warning:__'
           fi
