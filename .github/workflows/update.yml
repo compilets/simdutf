@@ -21,7 +21,7 @@ jobs:
         run: |
           # Download latest release.
           npx unzip-url https://github.com/simdutf/simdutf/releases/latest/download/singleheader.zip .
-          rm amalgamation_demo.cpp
+          sed -i '/^#include "simdutf.cpp"$/d' amalgamation_demo.cpp
           # Do nothing if there is no change.
           if ! git diff --exit-code --quiet
           then

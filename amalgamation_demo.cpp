@@ -1,6 +1,5 @@
 #include <memory>
 
-#include "simdutf.cpp"
 #include "simdutf.h"
 
 int main(int , char *[]) {

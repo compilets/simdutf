@@ -4,10 +4,12 @@ config("simdutf_config") {
 
 source_set("simdutf") {
   public_configs = [ ":simdutf_config" ]
+
   sources = [
     "simdutf.cpp",
     "simdutf.h",
   ]
+
   if (is_clang || !is_win) {
     cflags_cc = [
       "-Wno-#pragma-messages",
