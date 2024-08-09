@@ -10,6 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout
@@ -32,7 +33,7 @@ jobs:
             # Commit change and push
             git checkout -b update-latest-simdutf
             git commit -a -m 'Update to latest simdutf'
-            git push -- force
+            git push --force origin HEAD
             # Create PR.
             gh pr create --base main --head update-latest-simdutf \
                          --title 'Update to latest simdutf changes' \
