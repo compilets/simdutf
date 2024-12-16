@@ -1,4 +1,4 @@
-/* auto-generated on 2024-11-14 14:52:31 -0500. Do not edit! */
+/* auto-generated on 2024-12-10 14:54:53 -0500. Do not edit! */
 /* begin file include/simdutf.h */
 #ifndef SIMDUTF_H
 #define SIMDUTF_H
@@ -155,11 +155,11 @@
   // RISC-V 64-bit
   #define SIMDUTF_IS_RISCV64 1
 
-  #if __clang_major__ >= 19
-    // Does the compiler support target regions for RISC-V
-    #define SIMDUTF_HAS_RVV_TARGET_REGION 1
-  #endif
-
+  // #if __riscv_v_intrinsic >= 1000000
+  //   #define SIMDUTF_HAS_RVV_INTRINSICS 1
+  //   #define SIMDUTF_HAS_RVV_TARGET_REGION 1
+  // #elif ...
+  //  Check for special compiler versions that implement pre v1.0 intrinsics
   #if __riscv_v_intrinsic >= 11000
     #define SIMDUTF_HAS_RVV_INTRINSICS 1
   #endif
@@ -178,7 +178,12 @@
   #endif
 
 #elif defined(__loongarch_lp64)
-// LoongArch 64-bit
+  #if defined(__loongarch_sx) && defined(__loongarch_asx)
+    #define SIMDUTF_IS_LSX 1
+    #define SIMDUTF_IS_LASX 1
+  #elif defined(__loongarch_sx)
+    #define SIMDUTF_IS_LSX 1
+  #endif
 #else
   // The simdutf library is designed
   // for 64-bit processors and it seems that you are not
@@ -670,7 +675,7 @@ SIMDUTF_DISABLE_UNDESIRED_WARNINGS
 #define SIMDUTF_SIMDUTF_VERSION_H
 
 /** The version of simdutf being used (major.minor.revision) */
-#define SIMDUTF_VERSION "5.6.2"
+#define SIMDUTF_VERSION "5.6.4"
 
 namespace simdutf {
 enum {
@@ -685,7 +690,7 @@ enum {
   /**
    * The revision (major.minor.REVISION) of simdutf being used.
    */
-  SIMDUTF_VERSION_REVISION = 2
+  SIMDUTF_VERSION_REVISION = 4
 };
 } // namespace simdutf
 
@@ -796,6 +801,8 @@ enum instruction_set {
   AVX512VPOPCNTDQ = 0x2000,
   RVV = 0x4000,
   ZVBB = 0x8000,
+  LSX = 0x40000,
+  LASX = 0x80000,
 };
 
 #if defined(__PPC64__)
@@ -985,6 +992,28 @@ static inline uint32_t detect_supported_architectures() {
   if (ecx & cpuid_bit::ecx::avx512vpopcnt) {
     host_isa |= instruction_set::AVX512VPOPCNTDQ;
   }
+  return host_isa;
+}
+#elif defined(__loongarch__)
+  #if defined(__linux__)
+    #include <sys/auxv.h>
+  // bits/hwcap.h
+  // #define HWCAP_LOONGARCH_LSX             (1 << 4)
+  // #define HWCAP_LOONGARCH_LASX            (1 << 5)
+  #endif
+
+static inline uint32_t detect_supported_architectures() {
+  uint32_t host_isa = instruction_set::DEFAULT;
+  #if defined(__linux__)
+  uint64_t hwcap = 0;
+  hwcap = getauxval(AT_HWCAP);
+  if (hwcap & HWCAP_LOONGARCH_LSX) {
+    host_isa |= instruction_set::LSX;
+  }
+  if (hwcap & HWCAP_LOONGARCH_LASX) {
+    host_isa |= instruction_set::LASX;
+  }
+  #endif
   return host_isa;
 }
 #else // fallback
